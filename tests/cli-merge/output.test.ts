@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { buildOutput, parseSetCommands } from "../src/output.js";
+import { buildOutput, parseSetCommands } from "../../cli-merge/src/output.js";
 
 // parseSetCommands
 

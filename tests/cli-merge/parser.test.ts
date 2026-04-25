@@ -1,5 +1,5 @@
 import { assertEquals, assertExists } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { compareSections, parseCLI } from "../src/parser.js";
+import { compareSections, parseCLI } from "../../cli-merge/src/parser.js";
 
 const MINIMAL_CLI =
   `# Betaflight / STM32F745 (S745) 4.4.0 Nov  1 2022 / 01:00:00 (abc) MSP API: 1.45
