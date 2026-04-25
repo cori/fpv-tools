@@ -1,7 +1,7 @@
 {
   "tasks": {
-    "test": "deno test --allow-all",
-    "test:watch": "deno test --allow-all --watch",
+    "test": "deno test --allow-all --no-check tests/",
+    "test:watch": "deno test --allow-all --no-check --watch tests/",
     "dev": "deno run --allow-all --watch main.ts",
     "check": "deno check **/*.ts"
   },
