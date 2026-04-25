@@ -1,71 +1,88 @@
-# Template for Claude Code
+# FPV Tools
 
-A template repository for buildingusing Claude Code, optimized for Claude Code on the web.
+Browser-based utilities for Betaflight configuration and FPV drone setup. All tools run entirely in your browser — no account, no server-side processing, no data collection.
 
-## What is This?
+## Tools
 
-This template provides a development environment and guidelines for building with Claude Code. It includes:
+### 🔀 CLI Merge
+**Path:** `./cli-merge/`
 
-- **Development guidelines** in `claude.md` for best practices
+Compare two Betaflight CLI dumps side-by-side and generate a merged output. Useful for:
+- Merging settings from two different configurations
+- Comparing tune changes across revisions
+- Extracting specific sections from full dumps
 
-## Quick Start
+### 📈 Rate Profile Comparison
+**Path:** `./rate-profile/`
 
-### Using This Template
+Compare two Betaflight Actual Rates profiles with real-time visualization. Features:
+- **Dual profile editor** — adjust roll, pitch, yaw, throttle on two profiles simultaneously
+- **Live graphs** — see rate curves and throttle response update instantly
+- **Overlay or side-by-side view** — choose how you compare
+- **Profile history** — save, name, and load profiles from browser localStorage
+- **CLI import/export** — paste Betaflight dumps to load settings; copy CLI commands back
+- **Visibility toggles** — focus on specific profiles or axes
+- **Mobile-responsive** — works on tablet and phone
 
-1. **Create a new repository from this template**
-   - Click "Use this template" on GitHub
-   - Or: Clone and start building
+## Getting Started
 
-2. **Open in a dev container**
-   - GitHub Codespaces: Click "Code" → "Create codespace"
-   - VS Code: "Reopen in Container"
-   - Claude Code on web: Will automatically use the devcontainer
+1. **Open fpv-tools in your browser:** https://cori.github.io/fpv-tools/
+2. **Pick a tool** from the hub
+3. **Use it** — everything happens in your browser
 
-### Development Guide (`claude.md`)
+## Development
 
-Comprehensive guide covering:
-- Val.town essentials (auth, storage, runtime)
-- Development methodology (TDD, commits, documentation)
-- Technology choices (no React, mobile-responsive)
-- Testing strategy
-- Project structure recommendations
+### Adding a New Tool
 
-## Development Philosophy
+1. Create a new directory: `your-tool/`
+2. Include `index.html` as the entry point (can reference `your-tool/src/` modules if needed)
+3. Add a card to the hub in the main `index.html`
+4. Commit and push — GitHub Pages will deploy automatically
 
-This template enforces specific best practices:
+### Tech Stack
 
-### ✅ Red-Green-Refactor (TDD)
+- **Vanilla HTML/CSS/JS** — no frameworks, no build step
+- **ES6 modules** — for clean code organization
+- **HTML5 Canvas** — for graphs and visualizations
+- **localStorage** — for client-side data persistence
+- **Mobile-responsive CSS** — flexbox/grid, media queries
 
-1. Write failing test → commit
-2. Implement feature → commit
-3. Refactor → commit
+### Style Guide
 
-### ✅ Commit Early and Often
+- Dark theme (GitHub-inspired colors)
+- Orange accent color (`#e07b39`) for key UI elements
+- Card-based layout for tools
+- Monospace fonts for technical content (CLI, values)
 
-- Separate commits for tests and implementation
-- Show your work through git history
-- Meaningful commit messages
+### Testing
 
-### ✅ Keep Documentation Updated
+Some tools include unit tests. Run with:
+```bash
+npm test
+```
 
-- README stays current
-- API docs reflect actual endpoints
-- Architecture notes match reality
+## Architecture
 
-### ❌ No React
+```
+fpv-tools/
+├── index.html              # Hub page with tool links
+├── styles.css              # Shared theme (optional per-tool overrides OK)
+├── cli-merge/
+│   └── index.html          # CLI Merge tool
+├── rate-profile/
+│   ├── index.html          # Rate Profile tool
+│   ├── styles.css          # Tool-specific styles
+│   └── src/
+│       ├── app.js          # Main controller
+│       ├── rate-calculator.js
+│       ├── cli-parser.js
+│       ├── graph-renderer.js
+│       └── profile-manager.js
+└── .github/
+    └── workflows/
+        └── deploy.yml      # GitHub Pages auto-deploy on push
+```
 
-Val.town vals should be lightweight. Use:
-- Vanilla JS/TS
-- Web standards
-- HTML templates
-- Lightweight libraries (htmx, Alpine.js) if needed
+## License
 
-### ✅ Mobile-Responsive
-
-Every interface must work on mobile devices.
-
-- **[claude.md](./claude.md)** - Complete development guide
-
----
-
-**Remember**: Test first. Commit often. No React. Document everything.
+MIT
