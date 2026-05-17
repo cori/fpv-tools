@@ -314,6 +314,19 @@ Deno.test("parseCLI numbered subheader - profile_0 settings not in master", () =
   assertEquals(master.lines.some((l) => l.includes("set dterm_lpf1_dyn_min_hz")), false);
 });
 
+Deno.test("parseCLI numbered subheader - restore-before-rateprofiles: rateprofiles are sections not footer", () => {
+  // Betaflight 4.5+ places '# restore original profile selection' + 'profile 0'
+  // BEFORE the rateprofile sections. The parser must not open footer early.
+  const sections = parseCLI(NUMBERED_SUBHEADER_CLI);
+  assertEquals(sections.some((s) => s.id === "rateprofile_0"), true);
+  assertEquals(sections.some((s) => s.id === "rateprofile_1"), true);
+  const footer = sections.find((s) => s.id === "footer");
+  assertExists(footer);
+  // Footer should have the restore lines but not the rate settings
+  assertEquals(footer.lines.some((l) => l.includes("restore")), true);
+  assertEquals(footer.lines.some((l) => l.includes("set rateprofile_name")), false);
+});
+
 // compareSections
 
 Deno.test("compareSections - identical input yields all 'same'", () => {
