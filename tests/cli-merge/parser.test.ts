@@ -120,6 +120,100 @@ Deno.test("parseCLI - no section has empty lines array", () => {
   }
 });
 
+// dump all format — top-level "# profile" / "# rateprofile" before the profile N command
+
+const DUMP_ALL_CLI =
+  `# Betaflight / STM32F745 (S745) 4.4.0 Nov  1 2022 / 01:00:00 (abc) MSP API: 1.45
+# start the command batch
+batch start
+
+# feature
+feature TELEMETRY
+
+# master
+set gyro_lpf1_static_hz = 0
+
+# profile
+profile 0
+
+# profile
+set dterm_lpf1_dyn_min_hz = 75
+
+profile 1
+
+# profile
+set dterm_lpf1_dyn_min_hz = 80
+
+# rateprofile
+rateprofile 0
+
+# rateprofile
+set roll_rc_rate = 100
+
+rateprofile 1
+
+# rateprofile
+set roll_rc_rate = 120
+
+# save configuration
+save`;
+
+Deno.test("parseCLI dump-all - no spurious 'profile' section", () => {
+  const sections = parseCLI(DUMP_ALL_CLI);
+  assertEquals(sections.some((s) => s.id === "profile"), false);
+});
+
+Deno.test("parseCLI dump-all - no spurious 'rateprofile' section", () => {
+  const sections = parseCLI(DUMP_ALL_CLI);
+  assertEquals(sections.some((s) => s.id === "rateprofile"), false);
+});
+
+Deno.test("parseCLI dump-all - extracts profile_0 with settings", () => {
+  const sections = parseCLI(DUMP_ALL_CLI);
+  const p0 = sections.find((s) => s.id === "profile_0");
+  assertExists(p0);
+  assertEquals(p0.lines.some((l) => l.trim() === "profile 0"), true);
+  assertEquals(p0.lines.some((l) => l.includes("set dterm_lpf1_dyn_min_hz = 75")), true);
+});
+
+Deno.test("parseCLI dump-all - extracts profile_1 with settings", () => {
+  const sections = parseCLI(DUMP_ALL_CLI);
+  const p1 = sections.find((s) => s.id === "profile_1");
+  assertExists(p1);
+  assertEquals(p1.lines.some((l) => l.trim() === "profile 1"), true);
+  assertEquals(p1.lines.some((l) => l.includes("set dterm_lpf1_dyn_min_hz = 80")), true);
+});
+
+Deno.test("parseCLI dump-all - extracts rateprofile_0 with settings", () => {
+  const sections = parseCLI(DUMP_ALL_CLI);
+  const rp0 = sections.find((s) => s.id === "rateprofile_0");
+  assertExists(rp0);
+  assertEquals(rp0.lines.some((l) => l.trim() === "rateprofile 0"), true);
+  assertEquals(rp0.lines.some((l) => l.includes("set roll_rc_rate = 100")), true);
+});
+
+Deno.test("parseCLI dump-all - extracts rateprofile_1 with settings", () => {
+  const sections = parseCLI(DUMP_ALL_CLI);
+  const rp1 = sections.find((s) => s.id === "rateprofile_1");
+  assertExists(rp1);
+  assertEquals(rp1.lines.some((l) => l.trim() === "rateprofile 1"), true);
+  assertEquals(rp1.lines.some((l) => l.includes("set roll_rc_rate = 120")), true);
+});
+
+Deno.test("parseCLI dump-all vs diff-all - profile_0 sections are structurally equivalent", () => {
+  const diffSections = parseCLI(MINIMAL_CLI);
+  const dumpSections = parseCLI(DUMP_ALL_CLI);
+  const diffP0 = diffSections.find((s) => s.id === "profile_0");
+  const dumpP0 = dumpSections.find((s) => s.id === "profile_0");
+  assertExists(diffP0);
+  assertExists(dumpP0);
+  // Both should have the profile switch command and the sub-header comment
+  assertEquals(diffP0.lines.some((l) => l.trim() === "profile 0"), true);
+  assertEquals(dumpP0.lines.some((l) => l.trim() === "profile 0"), true);
+  assertEquals(diffP0.lines.some((l) => l.trim() === "# profile"), true);
+  assertEquals(dumpP0.lines.some((l) => l.trim() === "# profile"), true);
+});
+
 // compareSections
 
 Deno.test("compareSections - identical input yields all 'same'", () => {
