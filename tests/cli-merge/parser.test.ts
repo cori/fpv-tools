@@ -385,3 +385,125 @@ Deno.test("compareSections - exposes both linesA and linesB for diff sections", 
   assertEquals(compared[0].linesA, ["feature TELEMETRY"]);
   assertEquals(compared[0].linesB, ["feature RX_PPM"]);
 });
+
+Deno.test("compareSections - footer is always last even when B has extra sections", () => {
+  const a = [
+    { id: "master", title: "master", lines: ["set x = 1"] },
+    { id: "footer", title: "Footer", lines: ["save"] },
+  ];
+  const b = [
+    { id: "master", title: "master", lines: ["set x = 1"] },
+    { id: "feature", title: "feature", lines: ["feature OSD"] },
+    { id: "footer", title: "Footer", lines: ["save"] },
+  ];
+  const compared = compareSections(a, b);
+  assertEquals(compared[compared.length - 1].id, "footer");
+});
+
+// OSD extraction
+
+const CLI_WITH_OSD_IN_MASTER = `# Betaflight / STM32F745 4.4.0
+# start the command batch
+batch start
+
+# master
+set gyro_lpf1_static_hz = 0
+set osd_vbat_pos = 6177
+set osd_rssi_pos = 353
+set gyro_lpf2_static_hz = 500
+set osd_craft_name_pos = 6151
+
+# save configuration
+save`;
+
+Deno.test("parseCLI - osd_* lines extracted from master into osd section", () => {
+  const sections = parseCLI(CLI_WITH_OSD_IN_MASTER);
+  const osd = sections.find((s) => s.id === "osd");
+  assertExists(osd);
+  assertEquals(osd.lines.some((l) => l.includes("set osd_vbat_pos = 6177")), true);
+  assertEquals(osd.lines.some((l) => l.includes("set osd_rssi_pos = 353")), true);
+  assertEquals(osd.lines.some((l) => l.includes("set osd_craft_name_pos = 6151")), true);
+});
+
+Deno.test("parseCLI - master section does not contain osd_* lines after extraction", () => {
+  const sections = parseCLI(CLI_WITH_OSD_IN_MASTER);
+  const master = sections.find((s) => s.id === "master");
+  assertExists(master);
+  assertEquals(master.lines.every((l) => !/^set\s+osd_/.test(l.trim())), true);
+  assertEquals(master.lines.some((l) => l.includes("set gyro_lpf1_static_hz")), true);
+});
+
+Deno.test("parseCLI - osd section appears immediately after master", () => {
+  const sections = parseCLI(CLI_WITH_OSD_IN_MASTER);
+  const masterIdx = sections.findIndex((s) => s.id === "master");
+  const osdIdx = sections.findIndex((s) => s.id === "osd");
+  assertExists(sections[masterIdx]);
+  assertExists(sections[osdIdx]);
+  assertEquals(osdIdx, masterIdx + 1);
+});
+
+Deno.test("parseCLI - no osd section created when no osd_* settings present", () => {
+  const sections = parseCLI(MINIMAL_CLI);
+  assertEquals(sections.some((s) => s.id === "osd"), false);
+});
+
+// Native # osd section (newer Betaflight dumps already have a dedicated section)
+
+const CLI_WITH_NATIVE_OSD = `# Betaflight / STM32F745 4.5.0
+# start the command batch
+batch start
+
+# master
+set gyro_lpf1_static_hz = 0
+
+# osd
+set osd_vbat_pos = 6177
+set osd_rssi_pos = 353
+
+# save configuration
+save`;
+
+const CLI_WITH_NATIVE_OSD_AND_MASTER_OSD = `# Betaflight / STM32F745 4.5.0
+# start the command batch
+batch start
+
+# master
+set gyro_lpf1_static_hz = 0
+set osd_craft_name_pos = 6151
+
+# osd
+set osd_vbat_pos = 6177
+
+# save configuration
+save`;
+
+Deno.test("parseCLI - native osd section is preserved as-is", () => {
+  const sections = parseCLI(CLI_WITH_NATIVE_OSD);
+  const osd = sections.find((s) => s.id === "osd");
+  assertExists(osd);
+  assertEquals(osd.lines.some((l) => l.includes("set osd_vbat_pos = 6177")), true);
+  assertEquals(osd.lines.some((l) => l.includes("set osd_rssi_pos = 353")), true);
+});
+
+Deno.test("parseCLI - native osd section: master stays clean", () => {
+  const sections = parseCLI(CLI_WITH_NATIVE_OSD);
+  const master = sections.find((s) => s.id === "master");
+  assertExists(master);
+  assertEquals(master.lines.every((l) => !/^set\s+osd_/.test(l.trim())), true);
+});
+
+Deno.test("parseCLI - osd_* lines from master are merged into native osd section", () => {
+  const sections = parseCLI(CLI_WITH_NATIVE_OSD_AND_MASTER_OSD);
+  const osd = sections.find((s) => s.id === "osd");
+  assertExists(osd);
+  assertEquals(osd.lines.some((l) => l.includes("set osd_vbat_pos = 6177")), true);
+  assertEquals(osd.lines.some((l) => l.includes("set osd_craft_name_pos = 6151")), true);
+  assertEquals(sections.filter((s) => s.id === "osd").length, 1);
+});
+
+Deno.test("parseCLI - master has no osd_* after merge into native osd section", () => {
+  const sections = parseCLI(CLI_WITH_NATIVE_OSD_AND_MASTER_OSD);
+  const master = sections.find((s) => s.id === "master");
+  assertExists(master);
+  assertEquals(master.lines.every((l) => !/^set\s+osd_/.test(l.trim())), true);
+});
