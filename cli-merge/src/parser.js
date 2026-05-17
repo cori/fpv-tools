@@ -89,15 +89,17 @@ export function parseCLI(text) {
       const name = commentMatch[1].trim();
       const nameLower = name.toLowerCase();
 
-      // "# profile" / "# rateprofile" are sub-headers, never section openers.
-      // In diff-all format they appear after the profile N command (already inside
-      // the section). In dump-all format they appear before it as structural markers
-      // — discard those so no spurious section is created.
-      if (nameLower === "profile" || nameLower === "rateprofile") {
+      // "# profile [N]" / "# rateprofile [N]" are sub-headers, never section openers.
+      // Betaflight uses both bare ("# profile") and numbered ("# profile 0") forms.
+      // Keep inside the current profile_N / rateprofile_N section when already there;
+      // discard otherwise (structural markers in dump-all before the switch command).
+      const isProfileSubHdr = /^profile(\s+\d+)?$/.test(nameLower);
+      const isRateSubHdr = /^rateprofile(\s+\d+)?$/.test(nameLower);
+      if (isProfileSubHdr || isRateSubHdr) {
         if (
           current &&
-          ((current.id.startsWith("profile_") && nameLower === "profile") ||
-            (current.id.startsWith("rateprofile_") && nameLower === "rateprofile"))
+          ((isProfileSubHdr && current.id.startsWith("profile_")) ||
+            (isRateSubHdr && current.id.startsWith("rateprofile_")))
         ) {
           current.lines.push(line);
         }
