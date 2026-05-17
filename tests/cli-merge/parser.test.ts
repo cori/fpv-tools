@@ -214,6 +214,118 @@ Deno.test("parseCLI dump-all vs diff-all - profile_0 sections are structurally e
   assertEquals(dumpP0.lines.some((l) => l.trim() === "# profile"), true);
 });
 
+// numbered sub-headers: "# profile N" / "# rateprofile N" (real-world format)
+
+const NUMBERED_SUBHEADER_CLI = `# Betaflight / HUMMINGBIRD_F4_V4 4.5.1
+# start the command batch
+batch start
+
+# master
+set gyro_lpf2_static_hz = 1000
+
+profile 0
+
+# profile 0
+set profile_name = AOS 65mm
+set dterm_lpf1_dyn_min_hz = 75
+set p_pitch = 95
+
+profile 1
+
+profile 2
+
+# restore original profile selection
+profile 0
+
+rateprofile 0
+
+# rateprofile 0
+set rateprofile_name = DAILYRIP
+set roll_rc_rate = 20
+set roll_srate = 110
+
+rateprofile 1
+
+# rateprofile 1
+set rateprofile_name = MID
+set roll_rc_rate = 23
+
+rateprofile 2
+
+# restore original rate profile selection
+rateprofile 0
+
+# save configuration
+save`;
+
+Deno.test("parseCLI numbered subheader - no spurious 'profile 0' section", () => {
+  const sections = parseCLI(NUMBERED_SUBHEADER_CLI);
+  assertEquals(sections.some((s) => s.id === "profile 0"), false);
+});
+
+Deno.test("parseCLI numbered subheader - no spurious 'rateprofile 0' section", () => {
+  const sections = parseCLI(NUMBERED_SUBHEADER_CLI);
+  assertEquals(sections.some((s) => s.id === "rateprofile 0"), false);
+});
+
+Deno.test("parseCLI numbered subheader - no spurious 'rateprofile 1' section", () => {
+  const sections = parseCLI(NUMBERED_SUBHEADER_CLI);
+  assertEquals(sections.some((s) => s.id === "rateprofile 1"), false);
+});
+
+Deno.test("parseCLI numbered subheader - profile_0 contains switch command and settings", () => {
+  const sections = parseCLI(NUMBERED_SUBHEADER_CLI);
+  const p0 = sections.find((s) => s.id === "profile_0");
+  assertExists(p0);
+  assertEquals(p0.lines.some((l) => l.trim() === "profile 0"), true);
+  assertEquals(p0.lines.some((l) => l.includes("set profile_name = AOS 65mm")), true);
+  assertEquals(p0.lines.some((l) => l.includes("set dterm_lpf1_dyn_min_hz = 75")), true);
+});
+
+Deno.test("parseCLI numbered subheader - profile_0 sub-header kept inside section", () => {
+  const sections = parseCLI(NUMBERED_SUBHEADER_CLI);
+  const p0 = sections.find((s) => s.id === "profile_0");
+  assertExists(p0);
+  assertEquals(p0.lines.some((l) => l.trim() === "# profile 0"), true);
+});
+
+Deno.test("parseCLI numbered subheader - rateprofile_0 contains switch command and settings", () => {
+  const sections = parseCLI(NUMBERED_SUBHEADER_CLI);
+  const rp0 = sections.find((s) => s.id === "rateprofile_0");
+  assertExists(rp0);
+  assertEquals(rp0.lines.some((l) => l.trim() === "rateprofile 0"), true);
+  assertEquals(rp0.lines.some((l) => l.includes("set rateprofile_name = DAILYRIP")), true);
+});
+
+Deno.test("parseCLI numbered subheader - rateprofile_1 contains its own settings", () => {
+  const sections = parseCLI(NUMBERED_SUBHEADER_CLI);
+  const rp1 = sections.find((s) => s.id === "rateprofile_1");
+  assertExists(rp1);
+  assertEquals(rp1.lines.some((l) => l.trim() === "rateprofile 1"), true);
+  assertEquals(rp1.lines.some((l) => l.includes("set rateprofile_name = MID")), true);
+});
+
+Deno.test("parseCLI numbered subheader - profile_0 settings not in master", () => {
+  const sections = parseCLI(NUMBERED_SUBHEADER_CLI);
+  const master = sections.find((s) => s.id === "master");
+  assertExists(master);
+  assertEquals(master.lines.some((l) => l.includes("set profile_name")), false);
+  assertEquals(master.lines.some((l) => l.includes("set dterm_lpf1_dyn_min_hz")), false);
+});
+
+Deno.test("parseCLI numbered subheader - restore-before-rateprofiles: rateprofiles are sections not footer", () => {
+  // Betaflight 4.5+ places '# restore original profile selection' + 'profile 0'
+  // BEFORE the rateprofile sections. The parser must not open footer early.
+  const sections = parseCLI(NUMBERED_SUBHEADER_CLI);
+  assertEquals(sections.some((s) => s.id === "rateprofile_0"), true);
+  assertEquals(sections.some((s) => s.id === "rateprofile_1"), true);
+  const footer = sections.find((s) => s.id === "footer");
+  assertExists(footer);
+  // Footer should have the restore lines but not the rate settings
+  assertEquals(footer.lines.some((l) => l.includes("restore")), true);
+  assertEquals(footer.lines.some((l) => l.includes("set rateprofile_name")), false);
+});
+
 // compareSections
 
 Deno.test("compareSections - identical input yields all 'same'", () => {

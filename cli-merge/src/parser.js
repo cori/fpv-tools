@@ -16,6 +16,16 @@ export function parseCLI(text) {
   let current = /** @type {{id: string, title: string, lines: string[]}|null} */ (null);
   let pastBatchStart = false;
 
+  // Restore commands ("# restore original profile selection" + "profile N",
+  // "# restore original rateprofile selection" + "rateprofile N") need to end
+  // up in the footer but must NOT trigger footer early — in Betaflight 4.5+
+  // the profile restore appears between the profile sections and the rateprofile
+  // sections, so opening footer there would swallow all rateprofile content.
+  // Buffer these lines and flush them into footer when we see the real terminal
+  // commands (save / batch end / # save configuration).
+  /** @type {string[]} */
+  const footerBuffer = [];
+
   function flush() {
     if (!current) return;
     while (current.lines.length && !current.lines[current.lines.length - 1].trim()) {
@@ -28,6 +38,12 @@ export function parseCLI(text) {
   function open(id, title) {
     flush();
     current = { id, title, lines: [] };
+  }
+
+  function openFooter() {
+    if (current?.id !== "footer") open("footer", "Footer");
+    for (const l of footerBuffer) current.lines.push(l);
+    footerBuffer.length = 0;
   }
 
   open("header", "Header");
@@ -49,35 +65,49 @@ export function parseCLI(text) {
       continue;
     }
 
-    // profile N — starts a new profile section (unless already in footer)
+    // profile N
     const profileMatch = /^profile\s+(\d+)$/.exec(t);
     if (profileMatch) {
       if (current?.id === "footer") {
         current.lines.push(line);
       } else {
         const n = profileMatch[1];
-        open(`profile_${n}`, `Profile ${n}`);
-        current.lines.push(line);
+        const id = `profile_${n}`;
+        const alreadyExists = sections.some((s) => s.id === id) || current?.id === id;
+        if (alreadyExists) {
+          // Restore command — buffer for footer
+          footerBuffer.push(line);
+        } else {
+          open(id, `Profile ${n}`);
+          current.lines.push(line);
+        }
       }
       continue;
     }
 
-    // rateprofile N — starts a new rateprofile section (unless already in footer)
+    // rateprofile N
     const rateMatch = /^rateprofile\s+(\d+)$/.exec(t);
     if (rateMatch) {
       if (current?.id === "footer") {
         current.lines.push(line);
       } else {
         const n = rateMatch[1];
-        open(`rateprofile_${n}`, `Rate Profile ${n}`);
-        current.lines.push(line);
+        const id = `rateprofile_${n}`;
+        const alreadyExists = sections.some((s) => s.id === id) || current?.id === id;
+        if (alreadyExists) {
+          // Restore command — buffer for footer
+          footerBuffer.push(line);
+        } else {
+          open(id, `Rate Profile ${n}`);
+          current.lines.push(line);
+        }
       }
       continue;
     }
 
-    // batch end / save — everything from here is footer
+    // batch end / save — flush buffer and enter footer
     if (t === "batch end" || t === "save") {
-      if (current?.id !== "footer") open("footer", "Footer");
+      openFooter();
       current.lines.push(line);
       continue;
     }
@@ -89,24 +119,33 @@ export function parseCLI(text) {
       const name = commentMatch[1].trim();
       const nameLower = name.toLowerCase();
 
-      // "# profile" / "# rateprofile" are sub-headers, never section openers.
-      // In diff-all format they appear after the profile N command (already inside
-      // the section). In dump-all format they appear before it as structural markers
-      // — discard those so no spurious section is created.
-      if (nameLower === "profile" || nameLower === "rateprofile") {
+      // "# profile [N]" / "# rateprofile [N]" are sub-headers, never section openers.
+      // Betaflight uses both bare ("# profile") and numbered ("# profile 0") forms.
+      // Keep inside the current profile_N / rateprofile_N section when already there;
+      // discard otherwise (structural markers in dump-all before the switch command).
+      const isProfileSubHdr = /^profile(\s+\d+)?$/.test(nameLower);
+      const isRateSubHdr = /^rateprofile(\s+\d+)?$/.test(nameLower);
+      if (isProfileSubHdr || isRateSubHdr) {
         if (
           current &&
-          ((current.id.startsWith("profile_") && nameLower === "profile") ||
-            (current.id.startsWith("rateprofile_") && nameLower === "rateprofile"))
+          ((isProfileSubHdr && current.id.startsWith("profile_")) ||
+            (isRateSubHdr && current.id.startsWith("rateprofile_")))
         ) {
           current.lines.push(line);
         }
         continue;
       }
 
-      // "# restore ..." / "# save configuration" -> footer
-      if (nameLower.startsWith("restore") || nameLower.startsWith("save config")) {
-        if (current?.id !== "footer") open("footer", "Footer");
+      // "# restore ..." — buffer for footer (do NOT open footer yet; rateprofile
+      // sections may still follow in Betaflight 4.5+ format)
+      if (nameLower.startsWith("restore")) {
+        footerBuffer.push(line);
+        continue;
+      }
+
+      // "# save configuration" — flush buffer and enter footer
+      if (nameLower.startsWith("save config")) {
+        openFooter();
         current.lines.push(line);
         continue;
       }
@@ -119,6 +158,18 @@ export function parseCLI(text) {
   }
 
   flush();
+
+  // Edge case: dump ends without a save command (e.g. truncated or non-standard).
+  // Attach any buffered restore lines to an existing footer or create one.
+  if (footerBuffer.length > 0) {
+    const existingFooter = sections.find((s) => s.id === "footer");
+    if (existingFooter) {
+      existingFooter.lines.push(...footerBuffer);
+    } else {
+      sections.push({ id: "footer", title: "Footer", lines: [...footerBuffer] });
+    }
+  }
+
   return sections.filter((s) => s.lines.some((l) => l.trim()));
 }
 
