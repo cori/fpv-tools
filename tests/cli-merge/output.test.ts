@@ -217,3 +217,35 @@ Deno.test("buildOutput - defaults only-b section to B without explicit selection
   const out = buildOutput(sections, {}, {});
   assertEquals(out.includes("beacon RX_LOST"), true);
 });
+
+Deno.test("buildOutput - rateprofile section includes rateprofile switch command", () => {
+  const sections = [
+    {
+      id: "rateprofile_1",
+      title: "Rate Profile 1",
+      linesA: [],
+      linesB: ["rateprofile 1", "# rateprofile", "set roll_rc_rate = 120"],
+      status: "only-b",
+    },
+  ];
+  const out = buildOutput(sections, { rateprofile_1: "b" }, {});
+  assertEquals(out.includes("rateprofile 1"), true);
+  assertEquals(out.includes("set roll_rc_rate = 120"), true);
+  assertEquals(out.indexOf("rateprofile 1") < out.indexOf("set roll_rc_rate = 120"), true);
+});
+
+Deno.test("buildOutput - profile section includes profile switch command", () => {
+  const sections = [
+    {
+      id: "profile_1",
+      title: "Profile 1",
+      linesA: [],
+      linesB: ["profile 1", "# profile", "set dterm_lpf1_dyn_min_hz = 80"],
+      status: "only-b",
+    },
+  ];
+  const out = buildOutput(sections, { profile_1: "b" }, {});
+  assertEquals(out.includes("profile 1"), true);
+  assertEquals(out.includes("set dterm_lpf1_dyn_min_hz = 80"), true);
+  assertEquals(out.indexOf("profile 1") < out.indexOf("set dterm_lpf1_dyn_min_hz = 80"), true);
+});
