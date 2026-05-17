@@ -170,6 +170,34 @@ export function parseCLI(text) {
     }
   }
 
+  // Extract osd_* settings from master (and any other non-structural section) into
+  // a dedicated "osd" section so users can skip or merge OSD layout separately from
+  // flight settings. An existing "# osd" section from newer Betaflight dumps is left
+  // alone; extracted lines are appended to it if present.
+  const osdLines = /** @type {string[]} */ ([]);
+  for (const sec of sections) {
+    if (sec.id === "header" || sec.id === "footer" || sec.id === "osd") continue;
+    const kept = [];
+    for (const line of sec.lines) {
+      if (/^set\s+osd_/.test(line.trim())) {
+        osdLines.push(line);
+      } else {
+        kept.push(line);
+      }
+    }
+    sec.lines = kept;
+  }
+  if (osdLines.length > 0) {
+    const existing = sections.find((s) => s.id === "osd");
+    if (existing) {
+      existing.lines.push(...osdLines);
+    } else {
+      const masterIdx = sections.findIndex((s) => s.id === "master");
+      const insertAt = masterIdx !== -1 ? masterIdx + 1 : sections.length;
+      sections.splice(insertAt, 0, { id: "osd", title: "OSD", lines: osdLines });
+    }
+  }
+
   return sections.filter((s) => s.lines.some((l) => l.trim()));
 }
 
@@ -198,6 +226,13 @@ export function compareSections(sectionsA, sectionsB) {
       allIds.push(s.id);
       seen.add(s.id);
     }
+  }
+
+  // Footer must always render last regardless of which dump introduced extra sections.
+  const footerIdx = allIds.indexOf("footer");
+  if (footerIdx !== -1 && footerIdx !== allIds.length - 1) {
+    allIds.splice(footerIdx, 1);
+    allIds.push("footer");
   }
 
   return allIds.map((id) => {
