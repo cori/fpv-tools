@@ -89,13 +89,18 @@ export function parseCLI(text) {
       const name = commentMatch[1].trim();
       const nameLower = name.toLowerCase();
 
-      // "# profile" / "# rateprofile" sub-header stays inside its parent section
-      if (
-        current &&
-        ((current.id.startsWith("profile_") && nameLower === "profile") ||
-          (current.id.startsWith("rateprofile_") && nameLower === "rateprofile"))
-      ) {
-        current.lines.push(line);
+      // "# profile" / "# rateprofile" are sub-headers, never section openers.
+      // In diff-all format they appear after the profile N command (already inside
+      // the section). In dump-all format they appear before it as structural markers
+      // — discard those so no spurious section is created.
+      if (nameLower === "profile" || nameLower === "rateprofile") {
+        if (
+          current &&
+          ((current.id.startsWith("profile_") && nameLower === "profile") ||
+            (current.id.startsWith("rateprofile_") && nameLower === "rateprofile"))
+        ) {
+          current.lines.push(line);
+        }
         continue;
       }
 
