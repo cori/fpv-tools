@@ -22,6 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Inject git SHA into HTML
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          find . -name "*.html" -not -path "./.git/*" \
+            -exec sed -i "s/__GIT_SHA__/$SHORT_SHA/g" {} +
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
