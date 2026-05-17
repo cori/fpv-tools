@@ -216,8 +216,7 @@ Deno.test("parseCLI dump-all vs diff-all - profile_0 sections are structurally e
 
 // numbered sub-headers: "# profile N" / "# rateprofile N" (real-world format)
 
-const NUMBERED_SUBHEADER_CLI =
-  `# Betaflight / HUMMINGBIRD_F4_V4 4.5.1
+const NUMBERED_SUBHEADER_CLI = `# Betaflight / HUMMINGBIRD_F4_V4 4.5.1
 # start the command batch
 batch start
 
