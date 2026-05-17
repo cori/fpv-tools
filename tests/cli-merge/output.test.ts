@@ -230,7 +230,8 @@ Deno.test("buildOutput - rateprofile section includes rateprofile switch command
   ];
   const out = buildOutput(sections, { rateprofile_1: "b" }, {});
   assertEquals(out.includes("rateprofile 1"), true);
-  assertEquals(out.trim().indexOf("rateprofile 1") < out.indexOf("set roll_rc_rate"), true);
+  assertEquals(out.includes("set roll_rc_rate = 120"), true);
+  assertEquals(out.indexOf("rateprofile 1") < out.indexOf("set roll_rc_rate = 120"), true);
 });
 
 Deno.test("buildOutput - profile section includes profile switch command", () => {
@@ -245,5 +246,6 @@ Deno.test("buildOutput - profile section includes profile switch command", () =>
   ];
   const out = buildOutput(sections, { profile_1: "b" }, {});
   assertEquals(out.includes("profile 1"), true);
-  assertEquals(out.trim().indexOf("profile 1") < out.indexOf("set dterm_lpf1_dyn_min_hz"), true);
+  assertEquals(out.includes("set dterm_lpf1_dyn_min_hz = 80"), true);
+  assertEquals(out.indexOf("profile 1") < out.indexOf("set dterm_lpf1_dyn_min_hz = 80"), true);
 });
