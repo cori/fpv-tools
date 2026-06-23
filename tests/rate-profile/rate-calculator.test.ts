@@ -1,5 +1,9 @@
 import { assertAlmostEquals, assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { calculateThrottle } from "../../rate-profile/src/rate-calculator.js";
+import {
+  calculateThrottle,
+  normalizeLimitPercent,
+  normalizeLimitType,
+} from "../../rate-profile/src/rate-calculator.js";
 
 Deno.test("calculateThrottle - limit type OFF leaves output unchanged", () => {
   const base = calculateThrottle(1.0, 50, 0);
@@ -55,4 +59,76 @@ Deno.test("calculateThrottle - unknown limit type behaves as OFF", () => {
     base,
     1e-9,
   );
+});
+
+Deno.test("calculateThrottle - lowercase limit type is normalized", () => {
+  const base = calculateThrottle(1.0, 50, 0);
+  assertAlmostEquals(
+    calculateThrottle(1.0, 50, 0, "scale", 50),
+    base * 0.5,
+    1e-9,
+  );
+});
+
+Deno.test("calculateThrottle - NaN limit percent does not poison output", () => {
+  const base = calculateThrottle(1.0, 50, 0);
+  assertAlmostEquals(
+    calculateThrottle(1.0, 50, 0, "SCALE", NaN),
+    base,
+    1e-9,
+  );
+  assertAlmostEquals(
+    calculateThrottle(1.0, 50, 0, "CLIP", NaN),
+    base,
+    1e-9,
+  );
+});
+
+Deno.test("calculateThrottle - undefined limit type treated as OFF", () => {
+  const base = calculateThrottle(0.8, 50, 0);
+  assertAlmostEquals(
+    calculateThrottle(0.8, 50, 0, undefined, 50),
+    base,
+    1e-9,
+  );
+});
+
+Deno.test("normalizeLimitType - accepts canonical strings", () => {
+  assertEquals(normalizeLimitType("OFF"), "OFF");
+  assertEquals(normalizeLimitType("SCALE"), "SCALE");
+  assertEquals(normalizeLimitType("CLIP"), "CLIP");
+});
+
+Deno.test("normalizeLimitType - case-insensitive and trims whitespace", () => {
+  assertEquals(normalizeLimitType("scale"), "SCALE");
+  assertEquals(normalizeLimitType("  clip  "), "CLIP");
+});
+
+Deno.test("normalizeLimitType - falls back to OFF for unknown/missing", () => {
+  assertEquals(normalizeLimitType("bogus"), "OFF");
+  assertEquals(normalizeLimitType(undefined), "OFF");
+  assertEquals(normalizeLimitType(null), "OFF");
+  assertEquals(normalizeLimitType(""), "OFF");
+});
+
+Deno.test("normalizeLimitPercent - keeps valid numbers in range", () => {
+  assertEquals(normalizeLimitPercent(25), 25);
+  assertEquals(normalizeLimitPercent(80), 80);
+  assertEquals(normalizeLimitPercent(100), 100);
+});
+
+Deno.test("normalizeLimitPercent - clamps out-of-range to 0..100", () => {
+  assertEquals(normalizeLimitPercent(-5), 0);
+  assertEquals(normalizeLimitPercent(150), 100);
+});
+
+Deno.test("normalizeLimitPercent - non-finite values default to 100", () => {
+  assertEquals(normalizeLimitPercent(NaN), 100);
+  assertEquals(normalizeLimitPercent(Infinity), 100);
+  assertEquals(normalizeLimitPercent(undefined), 100);
+  assertEquals(normalizeLimitPercent("abc"), 100);
+});
+
+Deno.test("normalizeLimitPercent - coerces numeric strings", () => {
+  assertEquals(normalizeLimitPercent("70"), 70);
 });

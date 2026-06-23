@@ -169,6 +169,11 @@ header h1 {
   cursor: pointer;
 }
 
+.graph-panel-header h2,
+.graph-panel-header h3 {
+  margin: 0;
+}
+
 .graph-panel-header:hover .graph-panel-chevron {
   color: var(--text-primary);
 }

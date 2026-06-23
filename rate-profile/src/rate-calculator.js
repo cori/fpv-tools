@@ -28,6 +28,29 @@ export function calculateActualRate(rcCommand, center, maxRate, expo) {
 }
 
 /**
+ * Normalize a throttle limit type to one of OFF/SCALE/CLIP.
+ * Anything unrecognized (including null/undefined) becomes OFF.
+ * @param {unknown} value
+ * @returns {'OFF'|'SCALE'|'CLIP'}
+ */
+export function normalizeLimitType(value) {
+  const t = String(value ?? "").trim().toUpperCase();
+  return t === "SCALE" || t === "CLIP" ? t : "OFF";
+}
+
+/**
+ * Normalize a throttle limit percent. Non-finite values fall back to 100;
+ * valid numbers are clamped to 0..100.
+ * @param {unknown} value
+ * @returns {number}
+ */
+export function normalizeLimitPercent(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 100;
+  return Math.min(100, Math.max(0, n));
+}
+
+/**
  * Calculate throttle output with mid point and expo
  * @param {number} input - Throttle stick input from 0 to 1
  * @param {number} midPoint - Mid point value (0-100)
@@ -53,10 +76,11 @@ export function calculateThrottle(input, midPoint, expo, limitType = "OFF", limi
     throttle = mid + (expof - 0.5) * 2 * (1 - mid);
   }
 
-  const limit = limitPercent / 100;
-  if (limitType === "SCALE") {
+  const type = normalizeLimitType(limitType);
+  const limit = normalizeLimitPercent(limitPercent) / 100;
+  if (type === "SCALE") {
     throttle = throttle * limit;
-  } else if (limitType === "CLIP") {
+  } else if (type === "CLIP") {
     throttle = Math.min(throttle, limit);
   }
 

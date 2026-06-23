@@ -1,3 +1,5 @@
+import { normalizeLimitPercent, normalizeLimitType } from './rate-calculator.js';
+
 /**
  * Parse Betaflight CLI dump format
  * @param {string} text - CLI dump text
@@ -61,8 +63,8 @@ export function generateCLI(profile) {
     '# Throttle',
     `set thr_mid = ${profile.throttle.mid}`,
     `set thr_expo = ${profile.throttle.expo}`,
-    `set throttle_limit_type = ${profile.throttle.limitType ?? 'OFF'}`,
-    `set throttle_limit_percent = ${profile.throttle.limitPercent ?? 100}`,
+    `set throttle_limit_type = ${normalizeLimitType(profile.throttle.limitType)}`,
+    `set throttle_limit_percent = ${normalizeLimitPercent(profile.throttle.limitPercent)}`,
     '',
     'save'
   );

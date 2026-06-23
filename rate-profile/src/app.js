@@ -1,6 +1,7 @@
 import { GraphRenderer } from './graph-renderer.js';
 import { ProfileManager } from './profile-manager.js';
 import { parseCLI, generateCLI } from './cli-parser.js';
+import { normalizeLimitPercent, normalizeLimitType } from './rate-calculator.js';
 
 /**
  * Main application controller
@@ -404,8 +405,8 @@ class RateProfileComparison {
         yaw_expo: (v) => profileObj.rates.yaw.expo = parseInt(v),
         thr_mid: (v) => profileObj.throttle.mid = parseInt(v),
         thr_expo: (v) => profileObj.throttle.expo = parseInt(v),
-        throttle_limit_type: (v) => profileObj.throttle.limitType = String(v).trim().toUpperCase(),
-        throttle_limit_percent: (v) => profileObj.throttle.limitPercent = parseInt(v)
+        throttle_limit_type: (v) => profileObj.throttle.limitType = normalizeLimitType(v),
+        throttle_limit_percent: (v) => profileObj.throttle.limitPercent = normalizeLimitPercent(v)
       };
 
       let count = 0;
