@@ -32,9 +32,11 @@ export function calculateActualRate(rcCommand, center, maxRate, expo) {
  * @param {number} input - Throttle stick input from 0 to 1
  * @param {number} midPoint - Mid point value (0-100)
  * @param {number} expo - Expo value (0-100)
+ * @param {string} [limitType='OFF'] - Throttle limit mode: 'OFF', 'SCALE', or 'CLIP'
+ * @param {number} [limitPercent=100] - Throttle limit percentage (25-100)
  * @returns {number} Throttle output from 0 to 1
  */
-export function calculateThrottle(input, midPoint, expo) {
+export function calculateThrottle(input, midPoint, expo, limitType = "OFF", limitPercent = 100) {
   const mid = midPoint / 100;
   const expoNorm = expo / 100;
 
@@ -49,6 +51,13 @@ export function calculateThrottle(input, midPoint, expo) {
   } else {
     // Scale 0.5-1.0 input to mid-1.0 output
     throttle = mid + (expof - 0.5) * 2 * (1 - mid);
+  }
+
+  const limit = limitPercent / 100;
+  if (limitType === "SCALE") {
+    throttle = throttle * limit;
+  } else if (limitType === "CLIP") {
+    throttle = Math.min(throttle, limit);
   }
 
   return throttle;
