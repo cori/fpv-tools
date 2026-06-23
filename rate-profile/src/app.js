@@ -320,7 +320,12 @@ class RateProfileComparison {
   loadCollapsedState() {
     try {
       const raw = localStorage.getItem(this.collapseStorageKey);
-      return raw ? JSON.parse(raw) : {};
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed;
+      }
+      return {};
     } catch {
       return {};
     }
