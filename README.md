@@ -12,12 +12,16 @@ Compare two Betaflight CLI dumps side-by-side and generate a merged output. Usef
 - Comparing tune changes across revisions
 - Extracting specific sections from full dumps
 
+Inputs accept pasted text, a file picker, or drag-and-drop from your desktop.
+
 ### 📈 Rate Profile Comparison
 **Path:** `./rate-profile/`
 
 Compare two Betaflight Actual Rates profiles with real-time visualization. Features:
 - **Dual profile editor** — adjust roll, pitch, yaw, throttle on two profiles simultaneously
+- **Throttle limit** — Off/Scale/Clip mode plus a 25-100% limit slider, matching Betaflight's `throttle_limit_*` settings
 - **Live graphs** — see rate curves and throttle response update instantly
+- **Collapsible graph panels** — hide individual graphs; the state is remembered between visits
 - **Overlay or side-by-side view** — choose how you compare
 - **Profile history** — save, name, and load profiles from browser localStorage
 - **CLI import/export** — paste Betaflight dumps to load settings; copy CLI commands back
