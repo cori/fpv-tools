@@ -117,8 +117,10 @@ Deno.test("normalizeLimitPercent - keeps valid numbers in range", () => {
   assertEquals(normalizeLimitPercent(100), 100);
 });
 
-Deno.test("normalizeLimitPercent - clamps out-of-range to 0..100", () => {
-  assertEquals(normalizeLimitPercent(-5), 0);
+Deno.test("normalizeLimitPercent - clamps out-of-range to Betaflight 25..100", () => {
+  assertEquals(normalizeLimitPercent(-5), 25);
+  assertEquals(normalizeLimitPercent(0), 25);
+  assertEquals(normalizeLimitPercent(10), 25);
   assertEquals(normalizeLimitPercent(150), 100);
 });
 

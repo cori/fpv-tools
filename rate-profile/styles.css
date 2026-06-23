@@ -154,6 +154,10 @@ header h1 {
   color: var(--text-primary);
 }
 
+.graph-panel-heading {
+  margin: 0;
+}
+
 .graph-panel-header {
   display: flex;
   align-items: center;
@@ -163,15 +167,10 @@ header h1 {
   background: transparent;
   border: none;
   padding: 0 0 var(--spacing-md) 0;
-  color: var(--text-primary);
+  color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
-}
-
-.graph-panel-header h2,
-.graph-panel-header h3 {
-  margin: 0;
 }
 
 .graph-panel-header:hover .graph-panel-chevron {

@@ -40,14 +40,15 @@ export function normalizeLimitType(value) {
 
 /**
  * Normalize a throttle limit percent. Non-finite values fall back to 100;
- * valid numbers are clamped to 0..100.
+ * valid numbers are clamped to Betaflight's 25..100 range to match both the
+ * UI slider bounds and the firmware's documented limits.
  * @param {unknown} value
  * @returns {number}
  */
 export function normalizeLimitPercent(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return 100;
-  return Math.min(100, Math.max(0, n));
+  return Math.min(100, Math.max(25, n));
 }
 
 /**
