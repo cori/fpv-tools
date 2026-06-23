@@ -61,25 +61,35 @@
 
             <!-- Graphs - Overlay Mode -->
             <div class="graphs-container" id="graphs-overlay">
-                <div class="graph-panel">
-                    <h2>Rate Curves</h2>
-                    <canvas id="rate-canvas" width="900" height="500"></canvas>
-                    <div class="graph-legend">
-                        <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
-                        <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
-                        <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
-                        <span class="separator">|</span>
-                        <span class="legend-item"><span class="line-solid"></span> Profile A</span>
-                        <span class="legend-item"><span class="line-dashed"></span> Profile B</span>
+                <div class="graph-panel" data-collapse-key="overlay-rate">
+                    <button type="button" class="graph-panel-header" aria-expanded="true">
+                        <h2>Rate Curves</h2>
+                        <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                    </button>
+                    <div class="graph-panel-body">
+                        <canvas id="rate-canvas" width="900" height="500"></canvas>
+                        <div class="graph-legend">
+                            <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
+                            <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
+                            <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
+                            <span class="separator">|</span>
+                            <span class="legend-item"><span class="line-solid"></span> Profile A</span>
+                            <span class="legend-item"><span class="line-dashed"></span> Profile B</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="graph-panel">
-                    <h2>Throttle Curves</h2>
-                    <canvas id="throttle-canvas" width="900" height="500"></canvas>
-                    <div class="graph-legend">
-                        <span class="legend-item"><span class="line-solid throttle"></span> Profile A</span>
-                        <span class="legend-item"><span class="line-dashed throttle"></span> Profile B</span>
+                <div class="graph-panel" data-collapse-key="overlay-throttle">
+                    <button type="button" class="graph-panel-header" aria-expanded="true">
+                        <h2>Throttle Curves</h2>
+                        <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                    </button>
+                    <div class="graph-panel-body">
+                        <canvas id="throttle-canvas" width="900" height="500"></canvas>
+                        <div class="graph-legend">
+                            <span class="legend-item"><span class="line-solid throttle"></span> Profile A</span>
+                            <span class="legend-item"><span class="line-dashed throttle"></span> Profile B</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -88,35 +98,55 @@
             <div class="graphs-container-sidebyside" id="graphs-sidebyside" style="display: none;">
                 <div class="profile-graphs">
                     <h2>Profile A</h2>
-                    <div class="graph-panel">
-                        <h3>Rate Curves</h3>
-                        <canvas id="rate-canvas-a" width="700" height="400"></canvas>
-                        <div class="graph-legend">
-                            <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
-                            <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
-                            <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
+                    <div class="graph-panel" data-collapse-key="sbs-rate-a">
+                        <button type="button" class="graph-panel-header" aria-expanded="true">
+                            <h3>Rate Curves</h3>
+                            <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                        </button>
+                        <div class="graph-panel-body">
+                            <canvas id="rate-canvas-a" width="700" height="400"></canvas>
+                            <div class="graph-legend">
+                                <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
+                                <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
+                                <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="graph-panel">
-                        <h3>Throttle Curve</h3>
-                        <canvas id="throttle-canvas-a" width="700" height="400"></canvas>
+                    <div class="graph-panel" data-collapse-key="sbs-throttle-a">
+                        <button type="button" class="graph-panel-header" aria-expanded="true">
+                            <h3>Throttle Curve</h3>
+                            <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                        </button>
+                        <div class="graph-panel-body">
+                            <canvas id="throttle-canvas-a" width="700" height="400"></canvas>
+                        </div>
                     </div>
                 </div>
 
                 <div class="profile-graphs">
                     <h2>Profile B</h2>
-                    <div class="graph-panel">
-                        <h3>Rate Curves</h3>
-                        <canvas id="rate-canvas-b" width="700" height="400"></canvas>
-                        <div class="graph-legend">
-                            <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
-                            <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
-                            <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
+                    <div class="graph-panel" data-collapse-key="sbs-rate-b">
+                        <button type="button" class="graph-panel-header" aria-expanded="true">
+                            <h3>Rate Curves</h3>
+                            <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                        </button>
+                        <div class="graph-panel-body">
+                            <canvas id="rate-canvas-b" width="700" height="400"></canvas>
+                            <div class="graph-legend">
+                                <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
+                                <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
+                                <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="graph-panel">
-                        <h3>Throttle Curve</h3>
-                        <canvas id="throttle-canvas-b" width="700" height="400"></canvas>
+                    <div class="graph-panel" data-collapse-key="sbs-throttle-b">
+                        <button type="button" class="graph-panel-header" aria-expanded="true">
+                            <h3>Throttle Curve</h3>
+                            <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                        </button>
+                        <div class="graph-panel-body">
+                            <canvas id="throttle-canvas-b" width="700" height="400"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>

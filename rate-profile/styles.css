@@ -151,8 +151,44 @@ header h1 {
 
 .graph-panel h2 {
   font-size: 1.3rem;
-  margin-bottom: var(--spacing-md);
   color: var(--text-primary);
+}
+
+.graph-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0 0 var(--spacing-md) 0;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.graph-panel-header:hover .graph-panel-chevron {
+  color: var(--text-primary);
+}
+
+.graph-panel-chevron {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  transition: transform 0.15s ease;
+}
+
+.graph-panel.collapsed .graph-panel-chevron {
+  transform: rotate(-90deg);
+}
+
+.graph-panel.collapsed .graph-panel-body {
+  display: none;
+}
+
+.graph-panel.collapsed .graph-panel-header {
+  padding-bottom: 0;
 }
 
 .graph-panel canvas {
@@ -249,7 +285,6 @@ header h1 {
 
 .profile-graphs .graph-panel h3 {
   font-size: 1.1rem;
-  margin-bottom: var(--spacing-md);
   color: var(--text-primary);
 }
 

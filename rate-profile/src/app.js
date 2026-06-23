@@ -37,6 +37,7 @@ class RateProfileComparison {
     this.initializeImportExport();
     this.initializeProfileActions();
     this.initializeHistory();
+    this.initializeGraphCollapse();
 
     // Check viewport width and update view mode controls
     this.checkViewportWidth();
@@ -291,6 +292,51 @@ class RateProfileComparison {
         this.renderHistory();
       }
     });
+  }
+
+  initializeGraphCollapse() {
+    this.collapseStorageKey = 'fpv-rate-graph-collapsed';
+    const stored = this.loadCollapsedState();
+
+    document.querySelectorAll('.graph-panel[data-collapse-key]').forEach(panel => {
+      const key = panel.dataset.collapseKey;
+      if (stored[key]) {
+        panel.classList.add('collapsed');
+      }
+      const header = panel.querySelector('.graph-panel-header');
+      if (!header) return;
+      header.setAttribute('aria-expanded', String(!panel.classList.contains('collapsed')));
+      header.addEventListener('click', () => {
+        const collapsed = panel.classList.toggle('collapsed');
+        header.setAttribute('aria-expanded', String(!collapsed));
+        this.saveCollapsedState(key, collapsed);
+        // Re-render so the canvas is correctly sized after expanding
+        if (!collapsed) this.updateGraphs();
+      });
+    });
+  }
+
+  loadCollapsedState() {
+    try {
+      const raw = localStorage.getItem(this.collapseStorageKey);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  saveCollapsedState(key, collapsed) {
+    try {
+      const state = this.loadCollapsedState();
+      if (collapsed) {
+        state[key] = true;
+      } else {
+        delete state[key];
+      }
+      localStorage.setItem(this.collapseStorageKey, JSON.stringify(state));
+    } catch {
+      // Ignore quota / privacy-mode errors
+    }
   }
 
   onProfileChange() {
