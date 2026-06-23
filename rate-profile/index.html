@@ -208,6 +208,19 @@
                             <input type="range" id="a-throttle-expo" min="0" max="100" value="0" step="1">
                             <span id="a-throttle-expo-value" class="value-display">0</span>
                         </div>
+                        <div class="control-item">
+                            <label for="a-throttle-limit-type">Limit Type:</label>
+                            <select id="a-throttle-limit-type" class="select-input">
+                                <option value="OFF">Off</option>
+                                <option value="SCALE">Scale</option>
+                                <option value="CLIP">Clip</option>
+                            </select>
+                        </div>
+                        <div class="control-item">
+                            <label for="a-throttle-limit-percent">Limit Percent (25-100):</label>
+                            <input type="range" id="a-throttle-limit-percent" min="25" max="100" value="100" step="1">
+                            <span id="a-throttle-limit-percent-value" class="value-display">100</span>
+                        </div>
                     </div>
                 </div>
 
@@ -311,6 +324,19 @@
                             <label for="b-throttle-expo">Expo (0-100):</label>
                             <input type="range" id="b-throttle-expo" min="0" max="100" value="0" step="1">
                             <span id="b-throttle-expo-value" class="value-display">0</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="b-throttle-limit-type">Limit Type:</label>
+                            <select id="b-throttle-limit-type" class="select-input">
+                                <option value="OFF">Off</option>
+                                <option value="SCALE">Scale</option>
+                                <option value="CLIP">Clip</option>
+                            </select>
+                        </div>
+                        <div class="control-item">
+                            <label for="b-throttle-limit-percent">Limit Percent (25-100):</label>
+                            <input type="range" id="b-throttle-limit-percent" min="25" max="100" value="100" step="1">
+                            <span id="b-throttle-limit-percent-value" class="value-display">100</span>
                         </div>
                     </div>
                 </div>

@@ -61,6 +61,8 @@ export function generateCLI(profile) {
     '# Throttle',
     `set thr_mid = ${profile.throttle.mid}`,
     `set thr_expo = ${profile.throttle.expo}`,
+    `set throttle_limit_type = ${profile.throttle.limitType ?? 'OFF'}`,
+    `set throttle_limit_percent = ${profile.throttle.limitPercent ?? 100}`,
     '',
     'save'
   );

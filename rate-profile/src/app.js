@@ -58,7 +58,9 @@ class RateProfileComparison {
       },
       throttle: {
         mid: 50,
-        expo: 0
+        expo: 0,
+        limitType: 'OFF',
+        limitPercent: 100
       }
     };
   }
@@ -119,6 +121,21 @@ class RateProfileComparison {
         const value = parseInt(e.target.value);
         profileObj.throttle.expo = value;
         throttleExpoValue.textContent = value;
+        this.onProfileChange();
+      });
+
+      const throttleLimitTypeInput = document.getElementById(`${profile}-throttle-limit-type`);
+      throttleLimitTypeInput.addEventListener('change', (e) => {
+        profileObj.throttle.limitType = e.target.value;
+        this.onProfileChange();
+      });
+
+      const throttleLimitPercentInput = document.getElementById(`${profile}-throttle-limit-percent`);
+      const throttleLimitPercentValue = document.getElementById(`${profile}-throttle-limit-percent-value`);
+      throttleLimitPercentInput.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        profileObj.throttle.limitPercent = value;
+        throttleLimitPercentValue.textContent = value;
         this.onProfileChange();
       });
     });
@@ -340,7 +357,9 @@ class RateProfileComparison {
         pitch_expo: (v) => profileObj.rates.pitch.expo = parseInt(v),
         yaw_expo: (v) => profileObj.rates.yaw.expo = parseInt(v),
         thr_mid: (v) => profileObj.throttle.mid = parseInt(v),
-        thr_expo: (v) => profileObj.throttle.expo = parseInt(v)
+        thr_expo: (v) => profileObj.throttle.expo = parseInt(v),
+        throttle_limit_type: (v) => profileObj.throttle.limitType = String(v).trim().toUpperCase(),
+        throttle_limit_percent: (v) => profileObj.throttle.limitPercent = parseInt(v)
       };
 
       let count = 0;
@@ -385,6 +404,10 @@ class RateProfileComparison {
     document.getElementById(`${profile}-throttle-mid-value`).textContent = profileObj.throttle.mid;
     document.getElementById(`${profile}-throttle-expo`).value = profileObj.throttle.expo;
     document.getElementById(`${profile}-throttle-expo-value`).textContent = profileObj.throttle.expo;
+    document.getElementById(`${profile}-throttle-limit-type`).value = profileObj.throttle.limitType ?? 'OFF';
+    const limitPercent = profileObj.throttle.limitPercent ?? 100;
+    document.getElementById(`${profile}-throttle-limit-percent`).value = limitPercent;
+    document.getElementById(`${profile}-throttle-limit-percent-value`).textContent = limitPercent;
   }
 
   async copyExport(profile) {

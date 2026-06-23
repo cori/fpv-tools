@@ -233,7 +233,13 @@ export class GraphRenderer {
 
     for (let i = 0; i <= steps; i++) {
       const input = i / steps;
-      const throttleValue = calculateThrottle(input, throttle.mid, throttle.expo);
+      const throttleValue = calculateThrottle(
+        input,
+        throttle.mid,
+        throttle.expo,
+        throttle.limitType,
+        throttle.limitPercent,
+      );
 
       const x = this.padding + (width - 2 * this.padding) * input;
       const y = height - this.padding - (height - 2 * this.padding) * throttleValue;
