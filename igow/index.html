@@ -517,7 +517,7 @@ function renderChallenges() {
       <td><span class="badge badge-season">IGOW ${c.igow_season}</span></td>
       <td>${c.is_preseason ? 'P' : ''}${c.week}</td>
       <td>${phaseBadge(c)}</td>
-      <td><a href="#" onclick="showChallenge(${c.id});return false" style="color:var(--accent);text-decoration:none">${esc(c.title)}</a></td>
+      <td><a href="#" onclick="showChallenge(${c.id});return false" style="color:var(--accent);text-decoration:none">${esc(c.title)}</a>${c.youtube_url ? ` <a href="${esc(c.youtube_url)}" target="_blank" rel="noopener" style="color:var(--orange);text-decoration:none" title="Watch on YouTube">▶</a>` : ''}</td>
       <td><div class="trick-tags">${trickTags}</div></td>
     `;
     tbody.appendChild(tr);
@@ -639,6 +639,7 @@ function showChallenge(id) {
       <span class="badge ${c.is_preseason?'badge-pre':'badge-reg'}">${c.is_preseason?'Preseason':'Regular'} Week ${c.week}</span>
       ${c.is_finals?'<span class="badge badge-final">Finals</span>':''}
     </div>
+    ${c.youtube_url ? `<p style="margin-bottom:.75rem"><a href="${esc(c.youtube_url)}" target="_blank" rel="noopener" style="color:var(--orange);text-decoration:none;font-size:.85rem">▶ Watch on YouTube</a></p>` : ''}
     <div class="modal-desc">${esc(c.full_desc || c.short_desc || 'No description available.')}</div>
     <div class="modal-tricks">
       <h3>Trick Components (${tricks.length})</h3>
@@ -653,7 +654,7 @@ function showTrick(id) {
   const chals = (window.trickChallenges[id] || []).sort((a,b) => a.igow_season - b.igow_season || a.week - b.week);
   const chalList = chals.map(c => {
     const phase = c.is_preseason ? 'P' : (c.is_finals ? 'F' : '');
-    return `<div style="margin:.3rem 0"><span class="badge badge-season">IGOW${c.igow_season} ${phase}${c.week}</span> <a href="#" onclick="showChallenge(${c.id});return false" style="color:var(--accent)">${esc(c.title)}</a></div>`;
+    return `<div style="margin:.3rem 0"><span class="badge badge-season">IGOW${c.igow_season} ${phase}${c.week}</span> <a href="#" onclick="showChallenge(${c.id});return false" style="color:var(--accent)">${esc(c.title)}</a>${c.youtube_url ? ` <a href="${esc(c.youtube_url)}" target="_blank" rel="noopener" style="color:var(--orange);text-decoration:none" title="Watch on YouTube">▶</a>` : ''}</div>`;
   }).join('');
   document.getElementById('modal-content').innerHTML = `
     <button class="modal-close" onclick="closeModal()">✕</button>
