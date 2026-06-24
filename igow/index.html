@@ -256,6 +256,7 @@ footer {
   <div class="tabs">
     <button class="tab-btn active" data-tab="challenges">Challenges</button>
     <button class="tab-btn" data-tab="tricks">Tricks</button>
+    <button class="tab-btn" data-tab="sponsors">Sponsors</button>
     <button class="tab-btn" data-tab="matrix">Matrix</button>
   </div>
 
@@ -279,6 +280,11 @@ footer {
           <option value="">All</option>
         </select>
       </label>
+      <label>Sponsor
+        <select id="filter-sponsor">
+          <option value="">All</option>
+        </select>
+      </label>
       <label>Search
         <input type="text" id="filter-search" placeholder="Title or description...">
       </label>
@@ -292,6 +298,7 @@ footer {
             <th data-sort="week">Week</th>
             <th data-sort="phase">Phase</th>
             <th data-sort="title">Title</th>
+            <th>Sponsor</th>
             <th>Tricks</th>
           </tr>
         </thead>
@@ -340,6 +347,23 @@ footer {
       <table id="matrix-table">
         <thead id="matrix-head"></thead>
         <tbody id="matrix-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-sponsors" style="display:none">
+    <div class="stats" id="sponsor-stats"></div>
+    <div class="table-wrap">
+      <table id="sponsors-table">
+        <thead>
+          <tr>
+            <th data-sort="name">Sponsor</th>
+            <th data-sort="count">Challenges</th>
+            <th data-sort="seasons">Seasons</th>
+            <th>Featured Tricks</th>
+          </tr>
+        </thead>
+        <tbody id="sponsors-body"></tbody>
       </table>
     </div>
   </div>
@@ -426,6 +450,13 @@ function setupUI() {
   const cats = [...new Set(allTricks.map(t => t.category))].sort();
   cats.forEach(c => catSel.add(new Option(c, c)));
 
+  // Populate sponsor filter
+  const sponsorSel = document.getElementById('filter-sponsor');
+  const sponsors = [...new Set(allChallenges.map(c => c.sponsor).filter(Boolean))].sort(
+    (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })
+  );
+  sponsors.forEach(s => sponsorSel.add(new Option(s, s)));
+
   // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -434,6 +465,7 @@ function setupUI() {
       document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
       document.getElementById(`tab-${btn.dataset.tab}`).style.display = 'block';
       if (btn.dataset.tab === 'matrix') renderMatrix();
+      if (btn.dataset.tab === 'sponsors') renderSponsors();
     });
   });
 
@@ -441,6 +473,7 @@ function setupUI() {
   document.getElementById('filter-season').addEventListener('change', renderChallenges);
   document.getElementById('filter-phase').addEventListener('change', renderChallenges);
   document.getElementById('filter-trick').addEventListener('change', renderChallenges);
+  document.getElementById('filter-sponsor').addEventListener('change', renderChallenges);
   document.getElementById('filter-search').addEventListener('input', renderChallenges);
   document.getElementById('filter-trick-category').addEventListener('change', renderTricks);
   document.getElementById('filter-trick-search').addEventListener('input', renderTricks);
@@ -452,6 +485,9 @@ function setupUI() {
   });
   document.querySelectorAll('#tricks-table th[data-sort]').forEach(th => {
     th.addEventListener('click', () => sortTable('tricks', th.dataset.sort));
+  });
+  document.querySelectorAll('#sponsors-table th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => sortTable('sponsors', th.dataset.sort));
   });
 
   // Modal close
@@ -478,6 +514,7 @@ function renderChallenges() {
   const season = document.getElementById('filter-season').value;
   const phase = document.getElementById('filter-phase').value;
   const trick = document.getElementById('filter-trick').value;
+  const sponsor = document.getElementById('filter-sponsor').value;
   const search = document.getElementById('filter-search').value.toLowerCase();
 
   let filtered = allChallenges.filter(c => {
@@ -489,6 +526,7 @@ function renderChallenges() {
       const tricks = window.challengeTricks[c.id] || [];
       if (!tricks.some(t => t.name === trick)) return false;
     }
+    if (sponsor && c.sponsor !== sponsor) return false;
     if (search) {
       const text = (c.title + ' ' + c.short_desc).toLowerCase();
       if (!text.includes(search)) return false;
@@ -518,6 +556,7 @@ function renderChallenges() {
       <td>${c.is_preseason ? 'P' : ''}${c.week}</td>
       <td>${phaseBadge(c)}</td>
       <td><a href="#" onclick="showChallenge(${c.id});return false" style="color:var(--accent);text-decoration:none">${esc(c.title)}</a>${c.youtube_url ? ` <a href="${esc(c.youtube_url)}" target="_blank" rel="noopener" style="color:var(--orange);text-decoration:none" title="Watch on YouTube">▶</a>` : ''}</td>
+      <td>${c.sponsor ? `<span class="trick-tag" onclick="filterBySponsor('${c.sponsor.replace(/'/g,"\\'")}')">${esc(c.sponsor)}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
       <td><div class="trick-tags">${trickTags}</div></td>
     `;
     tbody.appendChild(tr);
@@ -608,6 +647,68 @@ function renderMatrix() {
     `<span><strong>${tricks.length}</strong> tricks × <strong>${challenges.length}</strong> challenges</span>`;
 }
 
+function renderSponsors() {
+  // Group challenges by sponsor
+  const sponsorMap = {};
+  allChallenges.forEach(c => {
+    const s = c.sponsor || '(No sponsor)';
+    if (!sponsorMap[s]) sponsorMap[s] = [];
+    sponsorMap[s].push(c);
+  });
+
+  // Build sponsor list with stats
+  let sponsors = Object.entries(sponsorMap).map(([name, chals]) => ({
+    name,
+    count: chals.length,
+    seasons: [...new Set(chals.map(c => c.igow_season))].sort((a,b) => a-b),
+    challenges: chals,
+  }));
+
+  // Default sort: by count descending, unless sort state says otherwise
+  if (sortState.table === 'sponsors' && sortState.key) {
+    sponsors.sort((a, b) => {
+      let va = a[sortState.key], vb = b[sortState.key];
+      if (sortState.key === 'seasons') { va = a.seasons.join(','); vb = b.seasons.join(','); }
+      if (sortState.key === 'name') return sortState.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      return sortState.dir === 'asc' ? va - vb : vb - va;
+    });
+  } else {
+    sponsors.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }
+
+  const tbody = document.getElementById('sponsors-body');
+  tbody.innerHTML = '';
+  sponsors.forEach(s => {
+    const tr = document.createElement('tr');
+    const seasonStr = s.seasons.map(n => `IGOW${n}`).join(', ');
+    // Top tricks across all this sponsor's challenges
+    const trickCounter = {};
+    s.challenges.forEach(c => {
+      (window.challengeTricks[c.id] || []).forEach(t => {
+        trickCounter[t.name] = (trickCounter[t.name] || 0) + 1;
+      });
+    });
+    const topTricks = Object.entries(trickCounter)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => `${esc(name)} (${count})`)
+      .join(', ');
+
+    tr.innerHTML = `
+      <td><a href="#" onclick="filterBySponsor('${s.name.replace(/'/g,"\\'")}');return false" style="color:var(--accent);text-decoration:none;font-weight:600">${esc(s.name)}</a></td>
+      <td><span class="badge badge-season">${s.count}</span></td>
+      <td style="font-size:.82rem">${esc(seasonStr)}</td>
+      <td style="color:var(--muted);font-size:.82rem">${topTricks || '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('sponsor-stats').innerHTML =
+    `<span><strong>${sponsors.length - 1}</strong> sponsors</span>` +
+    `<span><strong>${allChallenges.length}</strong> challenges</span>` +
+    `<span><strong>${sponsorMap['(No sponsor)']?.length || 0}</strong> unsponsored</span>`;
+}
+
 function sortTable(table, key) {
   if (sortState.table === table && sortState.key === key) {
     sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
@@ -625,6 +726,7 @@ function sortTable(table, key) {
 
   if (table === 'challenges') renderChallenges();
   else if (table === 'tricks') renderTricks();
+  else if (table === 'sponsors') renderSponsors();
 }
 
 function showChallenge(id) {
@@ -638,6 +740,7 @@ function showChallenge(id) {
       <span class="badge badge-season">IGOW ${c.igow_season}</span>
       <span class="badge ${c.is_preseason?'badge-pre':'badge-reg'}">${c.is_preseason?'Preseason':'Regular'} Week ${c.week}</span>
       ${c.is_finals?'<span class="badge badge-final">Finals</span>':''}
+      ${c.sponsor?`<span class="badge badge-pre">${esc(c.sponsor)}</span>`:''}
     </div>
     ${c.youtube_url ? `<p style="margin-bottom:.75rem"><a href="${esc(c.youtube_url)}" target="_blank" rel="noopener" style="color:var(--orange);text-decoration:none;font-size:.85rem">▶ Watch on YouTube</a></p>` : ''}
     <div class="modal-desc">${esc(c.full_desc || c.short_desc || 'No description available.')}</div>
@@ -673,12 +776,20 @@ function showTrick(id) {
 }
 
 function filterByTrick(name) {
-  // Switch to challenges tab
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.tab-btn[data-tab="challenges"]').classList.add('active');
   document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
   document.getElementById('tab-challenges').style.display = 'block';
   document.getElementById('filter-trick').value = name;
+  renderChallenges();
+}
+
+function filterBySponsor(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="challenges"]').classList.add('active');
+  document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
+  document.getElementById('tab-challenges').style.display = 'block';
+  document.getElementById('filter-sponsor').value = name === '(No sponsor)' ? '' : name;
   renderChallenges();
 }
 
