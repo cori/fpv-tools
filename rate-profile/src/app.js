@@ -1,6 +1,7 @@
 import { GraphRenderer } from './graph-renderer.js';
 import { ProfileManager } from './profile-manager.js';
 import { parseCLI, generateCLI } from './cli-parser.js';
+import { normalizeLimitPercent, normalizeLimitType } from './rate-calculator.js';
 
 /**
  * Main application controller
@@ -37,6 +38,7 @@ class RateProfileComparison {
     this.initializeImportExport();
     this.initializeProfileActions();
     this.initializeHistory();
+    this.initializeGraphCollapse();
 
     // Check viewport width and update view mode controls
     this.checkViewportWidth();
@@ -58,7 +60,9 @@ class RateProfileComparison {
       },
       throttle: {
         mid: 50,
-        expo: 0
+        expo: 0,
+        limitType: 'OFF',
+        limitPercent: 100
       }
     };
   }
@@ -119,6 +123,21 @@ class RateProfileComparison {
         const value = parseInt(e.target.value);
         profileObj.throttle.expo = value;
         throttleExpoValue.textContent = value;
+        this.onProfileChange();
+      });
+
+      const throttleLimitTypeInput = document.getElementById(`${profile}-throttle-limit-type`);
+      throttleLimitTypeInput.addEventListener('change', (e) => {
+        profileObj.throttle.limitType = e.target.value;
+        this.onProfileChange();
+      });
+
+      const throttleLimitPercentInput = document.getElementById(`${profile}-throttle-limit-percent`);
+      const throttleLimitPercentValue = document.getElementById(`${profile}-throttle-limit-percent-value`);
+      throttleLimitPercentInput.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        profileObj.throttle.limitPercent = value;
+        throttleLimitPercentValue.textContent = value;
         this.onProfileChange();
       });
     });
@@ -276,6 +295,56 @@ class RateProfileComparison {
     });
   }
 
+  initializeGraphCollapse() {
+    this.collapseStorageKey = 'fpv-rate-graph-collapsed';
+    const stored = this.loadCollapsedState();
+
+    document.querySelectorAll('.graph-panel[data-collapse-key]').forEach(panel => {
+      const key = panel.dataset.collapseKey;
+      if (stored[key]) {
+        panel.classList.add('collapsed');
+      }
+      const header = panel.querySelector('.graph-panel-header');
+      if (!header) return;
+      header.setAttribute('aria-expanded', String(!panel.classList.contains('collapsed')));
+      header.addEventListener('click', () => {
+        const collapsed = panel.classList.toggle('collapsed');
+        header.setAttribute('aria-expanded', String(!collapsed));
+        this.saveCollapsedState(key, collapsed);
+        // Re-render so the canvas is correctly sized after expanding
+        if (!collapsed) this.updateGraphs();
+      });
+    });
+  }
+
+  loadCollapsedState() {
+    try {
+      const raw = localStorage.getItem(this.collapseStorageKey);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed;
+      }
+      return {};
+    } catch {
+      return {};
+    }
+  }
+
+  saveCollapsedState(key, collapsed) {
+    try {
+      const state = this.loadCollapsedState();
+      if (collapsed) {
+        state[key] = true;
+      } else {
+        delete state[key];
+      }
+      localStorage.setItem(this.collapseStorageKey, JSON.stringify(state));
+    } catch {
+      // Ignore quota / privacy-mode errors
+    }
+  }
+
   onProfileChange() {
     // Update graphs immediately
     this.updateGraphs();
@@ -340,7 +409,9 @@ class RateProfileComparison {
         pitch_expo: (v) => profileObj.rates.pitch.expo = parseInt(v),
         yaw_expo: (v) => profileObj.rates.yaw.expo = parseInt(v),
         thr_mid: (v) => profileObj.throttle.mid = parseInt(v),
-        thr_expo: (v) => profileObj.throttle.expo = parseInt(v)
+        thr_expo: (v) => profileObj.throttle.expo = parseInt(v),
+        throttle_limit_type: (v) => profileObj.throttle.limitType = normalizeLimitType(v),
+        throttle_limit_percent: (v) => profileObj.throttle.limitPercent = normalizeLimitPercent(v)
       };
 
       let count = 0;
@@ -385,6 +456,10 @@ class RateProfileComparison {
     document.getElementById(`${profile}-throttle-mid-value`).textContent = profileObj.throttle.mid;
     document.getElementById(`${profile}-throttle-expo`).value = profileObj.throttle.expo;
     document.getElementById(`${profile}-throttle-expo-value`).textContent = profileObj.throttle.expo;
+    document.getElementById(`${profile}-throttle-limit-type`).value = profileObj.throttle.limitType ?? 'OFF';
+    const limitPercent = profileObj.throttle.limitPercent ?? 100;
+    document.getElementById(`${profile}-throttle-limit-percent`).value = limitPercent;
+    document.getElementById(`${profile}-throttle-limit-percent-value`).textContent = limitPercent;
   }
 
   async copyExport(profile) {

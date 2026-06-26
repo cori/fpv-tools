@@ -60,14 +60,46 @@ body {
 }
 @media (max-width: 700px) { .input-grid { grid-template-columns: 1fr; } }
 
+.input-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .35rem;
+}
+
 .input-label {
   display: flex;
   align-items: center;
   gap: .4rem;
   font-size: .8rem;
   font-weight: 600;
-  margin-bottom: .35rem;
 }
+
+.input-actions { display: flex; align-items: center; gap: .4rem; }
+.file-input { display: none; }
+
+.drop-zone { position: relative; }
+.drop-zone textarea { width: 100%; }
+
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(224, 123, 57, .12);
+  border: 2px dashed var(--orange);
+  border-radius: 6px;
+  color: var(--orange);
+  font-size: .85rem;
+  font-weight: 600;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .12s;
+}
+
+.drop-zone.drag-over .drop-overlay { opacity: 1; }
 .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .dot-a { background: var(--a); }
 .dot-b { background: var(--b); }
@@ -341,12 +373,30 @@ hr { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
   <!-- ── Step 1: Inputs ── -->
   <div class="input-grid">
     <div>
-      <div class="input-label"><span class="dot dot-a"></span>CLI A (base)</div>
-      <textarea id="cli-a" placeholder="Paste output of  diff all  or  dump all  here…"></textarea>
+      <div class="input-row">
+        <div class="input-label"><span class="dot dot-a"></span>CLI A (base)</div>
+        <div class="input-actions">
+          <button type="button" class="btn btn-ghost btn-sm" data-load-file="cli-a">📁 Load file</button>
+          <input type="file" class="file-input" data-target="cli-a" accept=".txt,.cli,.config,.log,text/plain">
+        </div>
+      </div>
+      <div class="drop-zone" data-drop-target="cli-a">
+        <textarea id="cli-a" placeholder="Paste output of  diff all  or  dump all  here — or drop a file"></textarea>
+        <div class="drop-overlay">Drop file to load</div>
+      </div>
     </div>
     <div>
-      <div class="input-label"><span class="dot dot-b"></span>CLI B (source)</div>
-      <textarea id="cli-b" placeholder="Paste output of  diff all  or  dump all  here…"></textarea>
+      <div class="input-row">
+        <div class="input-label"><span class="dot dot-b"></span>CLI B (source)</div>
+        <div class="input-actions">
+          <button type="button" class="btn btn-ghost btn-sm" data-load-file="cli-b">📁 Load file</button>
+          <input type="file" class="file-input" data-target="cli-b" accept=".txt,.cli,.config,.log,text/plain">
+        </div>
+      </div>
+      <div class="drop-zone" data-drop-target="cli-b">
+        <textarea id="cli-b" placeholder="Paste output of  diff all  or  dump all  here — or drop a file"></textarea>
+        <div class="drop-overlay">Drop file to load</div>
+      </div>
     </div>
   </div>
 
@@ -628,6 +678,58 @@ function refreshOutput() {
   const out = buildOutput(state.sections, state.selections, state.setSelections);
   document.getElementById("output-area").value = out;
 }
+
+// ── File loading (picker + drag-and-drop) ──────────────────────────────────
+
+async function loadFileIntoTextarea(file, targetId) {
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const ta = document.getElementById(targetId);
+    ta.value = text;
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
+    toast(`Loaded ${file.name}`);
+  } catch (err) {
+    toast(`Could not read file: ${err.message ?? err}`);
+  }
+}
+
+document.querySelectorAll("[data-load-file]").forEach((btn) => {
+  const targetId = btn.dataset.loadFile;
+  const input = document.querySelector(`.file-input[data-target="${targetId}"]`);
+  if (!input) return;
+  btn.addEventListener("click", () => input.click());
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    loadFileIntoTextarea(file, targetId);
+    input.value = "";
+  });
+});
+
+document.querySelectorAll("[data-drop-target]").forEach((zone) => {
+  const targetId = zone.dataset.dropTarget;
+  zone.addEventListener("dragenter", (e) => {
+    if (!e.dataTransfer?.types.includes("Files")) return;
+    e.preventDefault();
+    zone.classList.add("drag-over");
+  });
+  zone.addEventListener("dragover", (e) => {
+    if (!e.dataTransfer?.types.includes("Files")) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  });
+  zone.addEventListener("dragleave", (e) => {
+    if (e.target === zone || !zone.contains(e.relatedTarget)) {
+      zone.classList.remove("drag-over");
+    }
+  });
+  zone.addEventListener("drop", (e) => {
+    if (!e.dataTransfer?.files?.length) return;
+    e.preventDefault();
+    zone.classList.remove("drag-over");
+    loadFileIntoTextarea(e.dataTransfer.files[0], targetId);
+  });
+});
 
 // ── Events ─────────────────────────────────────────────────────────────────
 

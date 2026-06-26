@@ -61,25 +61,39 @@
 
             <!-- Graphs - Overlay Mode -->
             <div class="graphs-container" id="graphs-overlay">
-                <div class="graph-panel">
-                    <h2>Rate Curves</h2>
-                    <canvas id="rate-canvas" width="900" height="500"></canvas>
-                    <div class="graph-legend">
-                        <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
-                        <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
-                        <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
-                        <span class="separator">|</span>
-                        <span class="legend-item"><span class="line-solid"></span> Profile A</span>
-                        <span class="legend-item"><span class="line-dashed"></span> Profile B</span>
+                <div class="graph-panel" data-collapse-key="overlay-rate">
+                    <h2 class="graph-panel-heading">
+                        <button type="button" class="graph-panel-header" aria-expanded="true">
+                            <span>Rate Curves</span>
+                            <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                        </button>
+                    </h2>
+                    <div class="graph-panel-body">
+                        <canvas id="rate-canvas" width="900" height="500"></canvas>
+                        <div class="graph-legend">
+                            <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
+                            <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
+                            <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
+                            <span class="separator">|</span>
+                            <span class="legend-item"><span class="line-solid"></span> Profile A</span>
+                            <span class="legend-item"><span class="line-dashed"></span> Profile B</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="graph-panel">
-                    <h2>Throttle Curves</h2>
-                    <canvas id="throttle-canvas" width="900" height="500"></canvas>
-                    <div class="graph-legend">
-                        <span class="legend-item"><span class="line-solid throttle"></span> Profile A</span>
-                        <span class="legend-item"><span class="line-dashed throttle"></span> Profile B</span>
+                <div class="graph-panel" data-collapse-key="overlay-throttle">
+                    <h2 class="graph-panel-heading">
+                        <button type="button" class="graph-panel-header" aria-expanded="true">
+                            <span>Throttle Curves</span>
+                            <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                        </button>
+                    </h2>
+                    <div class="graph-panel-body">
+                        <canvas id="throttle-canvas" width="900" height="500"></canvas>
+                        <div class="graph-legend">
+                            <span class="legend-item"><span class="line-solid throttle"></span> Profile A</span>
+                            <span class="legend-item"><span class="line-dashed throttle"></span> Profile B</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -88,35 +102,63 @@
             <div class="graphs-container-sidebyside" id="graphs-sidebyside" style="display: none;">
                 <div class="profile-graphs">
                     <h2>Profile A</h2>
-                    <div class="graph-panel">
-                        <h3>Rate Curves</h3>
-                        <canvas id="rate-canvas-a" width="700" height="400"></canvas>
-                        <div class="graph-legend">
-                            <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
-                            <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
-                            <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
+                    <div class="graph-panel" data-collapse-key="sbs-rate-a">
+                        <h3 class="graph-panel-heading">
+                            <button type="button" class="graph-panel-header" aria-expanded="true">
+                                <span>Rate Curves</span>
+                                <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                            </button>
+                        </h3>
+                        <div class="graph-panel-body">
+                            <canvas id="rate-canvas-a" width="700" height="400"></canvas>
+                            <div class="graph-legend">
+                                <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
+                                <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
+                                <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="graph-panel">
-                        <h3>Throttle Curve</h3>
-                        <canvas id="throttle-canvas-a" width="700" height="400"></canvas>
+                    <div class="graph-panel" data-collapse-key="sbs-throttle-a">
+                        <h3 class="graph-panel-heading">
+                            <button type="button" class="graph-panel-header" aria-expanded="true">
+                                <span>Throttle Curve</span>
+                                <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                            </button>
+                        </h3>
+                        <div class="graph-panel-body">
+                            <canvas id="throttle-canvas-a" width="700" height="400"></canvas>
+                        </div>
                     </div>
                 </div>
 
                 <div class="profile-graphs">
                     <h2>Profile B</h2>
-                    <div class="graph-panel">
-                        <h3>Rate Curves</h3>
-                        <canvas id="rate-canvas-b" width="700" height="400"></canvas>
-                        <div class="graph-legend">
-                            <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
-                            <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
-                            <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
+                    <div class="graph-panel" data-collapse-key="sbs-rate-b">
+                        <h3 class="graph-panel-heading">
+                            <button type="button" class="graph-panel-header" aria-expanded="true">
+                                <span>Rate Curves</span>
+                                <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                            </button>
+                        </h3>
+                        <div class="graph-panel-body">
+                            <canvas id="rate-canvas-b" width="700" height="400"></canvas>
+                            <div class="graph-legend">
+                                <span class="legend-item"><span class="line-solid roll"></span> Roll</span>
+                                <span class="legend-item"><span class="line-solid pitch"></span> Pitch</span>
+                                <span class="legend-item"><span class="line-solid yaw"></span> Yaw</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="graph-panel">
-                        <h3>Throttle Curve</h3>
-                        <canvas id="throttle-canvas-b" width="700" height="400"></canvas>
+                    <div class="graph-panel" data-collapse-key="sbs-throttle-b">
+                        <h3 class="graph-panel-heading">
+                            <button type="button" class="graph-panel-header" aria-expanded="true">
+                                <span>Throttle Curve</span>
+                                <span class="graph-panel-chevron" aria-hidden="true">▾</span>
+                            </button>
+                        </h3>
+                        <div class="graph-panel-body">
+                            <canvas id="throttle-canvas-b" width="700" height="400"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -207,6 +249,19 @@
                             <label for="a-throttle-expo">Expo (0-100):</label>
                             <input type="range" id="a-throttle-expo" min="0" max="100" value="0" step="1">
                             <span id="a-throttle-expo-value" class="value-display">0</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="a-throttle-limit-type">Limit Type:</label>
+                            <select id="a-throttle-limit-type" class="select-input">
+                                <option value="OFF">Off</option>
+                                <option value="SCALE">Scale</option>
+                                <option value="CLIP">Clip</option>
+                            </select>
+                        </div>
+                        <div class="control-item">
+                            <label for="a-throttle-limit-percent">Limit Percent (25-100):</label>
+                            <input type="range" id="a-throttle-limit-percent" min="25" max="100" value="100" step="1">
+                            <span id="a-throttle-limit-percent-value" class="value-display">100</span>
                         </div>
                     </div>
                 </div>
@@ -311,6 +366,19 @@
                             <label for="b-throttle-expo">Expo (0-100):</label>
                             <input type="range" id="b-throttle-expo" min="0" max="100" value="0" step="1">
                             <span id="b-throttle-expo-value" class="value-display">0</span>
+                        </div>
+                        <div class="control-item">
+                            <label for="b-throttle-limit-type">Limit Type:</label>
+                            <select id="b-throttle-limit-type" class="select-input">
+                                <option value="OFF">Off</option>
+                                <option value="SCALE">Scale</option>
+                                <option value="CLIP">Clip</option>
+                            </select>
+                        </div>
+                        <div class="control-item">
+                            <label for="b-throttle-limit-percent">Limit Percent (25-100):</label>
+                            <input type="range" id="b-throttle-limit-percent" min="25" max="100" value="100" step="1">
+                            <span id="b-throttle-limit-percent-value" class="value-display">100</span>
                         </div>
                     </div>
                 </div>
